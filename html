@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SoChat</title>
+    <style>
+        .chat-container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .chat-message {
+            margin-bottom: 10px;
+        }
+        .user-message {
+            color: #333;
+        }
+        .bot-message {
+            color: #666;
+        }
+        .input-container {
+            display: flex;
+            margin-top: 10px;
+        }
+        #user-input {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        #send-button {
+            flex-shrink: 0;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="chat-container">
+        <div id="chat-log"></div>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="Type your message here" />
+            <button id="send-button" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const chatLog = document.getElementById('chat-log');
+        const userInput = document.getElementById('user-input');
+
+        const apiToken = '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';
+        const endpoint = 'https://api.openai.com/v1/chat/completions';
+
+        async function sendMessage() {
+            const userMessage = userInput.value.trim();
+            if (userMessage === '') return;
+
+            appendMessage(userMessage, 'user-message');
+            userInput.value = '';
+
+            const response = await axios.post(endpoint, {
+                messages: [
+                    { role: 'system', content: 'You are a chat bot' },
+                    { role: 'user', content: userMessage }
+                ]
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${apiToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const botMessage = response.data.choices[0].message.content;
+            appendMessage(botMessage, 'bot-message');
+        }
+
+        function appendMessage(message, className) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-message', className);
+            messageElement.innerText = message;
+            chatLog.appendChild(messageElement);
+        }
+
+        function adjustChatContainerHeight() {
+            const chatContainer = document.querySelector('.chat-container');
+            chatContainer.style.maxHeight = (window.innerHeight - 40) + 'px';
+        }
+
+        window.addEventListener('resize', adjustChatContainerHeight);
+        adjustChatContainerHeight();
+    </script>
+</body>
+</html>
